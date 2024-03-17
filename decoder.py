@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import time
+import sys
 
 start_time = time.time()
 
@@ -43,10 +44,15 @@ def binary_to_file(binary_data, output_file_path):
 
 # Example usage
 if __name__ == "__main__":
-    video_path = 'data_video.mp4'
+    video_path = format(sys.argv[1])
+    if video_path is None: 
+        print("No video file specified, exitting")
+        exit()
+    print ('Reading video file from: ' , video_path)
+    output_file = format(sys.argv[2]) if len(sys.argv) > 2 else "file.txt"
     frames = video_to_frames(video_path)
     binary_data = frames_to_binary(frames)
-    binary_to_file(binary_data, 'output2.png')
+    binary_to_file(binary_data, output_file)
 
 end_time = time.time()
 print(f"Decoding completed in {end_time - start_time:.2f} seconds.")

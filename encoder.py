@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import time
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips, CompositeAudioClip
+import sys
 
 start_time = time.time()
 
@@ -14,7 +15,7 @@ def file_to_binary(file_path):
     return ''.join(format(byte, '08b') for byte in content)
 
 # Change pixel_size here
-def binary_to_frames(binary_data, frame_size=(1920, 1080), pixel_size=5):
+def binary_to_frames(binary_data, frame_size=(1920, 1080), pixel_size=10):
     """Converts binary data to a list of frames."""
     width, height = frame_size
     pixels_per_width = width // pixel_size
@@ -41,7 +42,7 @@ def binary_to_frames(binary_data, frame_size=(1920, 1080), pixel_size=5):
     return frames
 
 # Can increase FPS but risks triggering irreversible compression on YouTube
-def save_frames_to_video(frames, output_file='output.mp4', fps=15):
+def save_frames_to_video(frames, output_file='output.mp4', fps=2):
     """Saves frames to a video file."""
     height, width = frames[0].shape[:2]
     out = cv2.VideoWriter(output_file, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
@@ -49,6 +50,8 @@ def save_frames_to_video(frames, output_file='output.mp4', fps=15):
     for frame in frames:
         out.write(frame)
     out.release()
+    
+    return output_file
 
 def add_audio_to_video(video_path, audio_path, output_path):
     #  Load the video clip
@@ -82,14 +85,21 @@ def add_audio_to_video(video_path, audio_path, output_path):
 
 # Example usage
 if __name__ == "__main__":
-    file_path = 'image.png'
-    audio_path = 'sneakysnitch.mp3'
+    file_path = format(sys.argv[1])
+    result_path = format(sys.argv[2]) if len(sys.argv) > 2 else "video.mp4"
+    if file_path is None: 
+        print("No file specified, exitting")
+        exit()
+    print ('Reading source file from: ' , file_path)
     binary_data = file_to_binary(file_path)
     frames = binary_to_frames(binary_data)
-    save_frames_to_video(frames, 'data_video.mp4')
 
-    # Uncomment the below if you want music in your video lol
-    #add_audio_to_video('data_video.mp4', audio_path, 'data_video_audio.mp4')
+    audio_path = format(sys.argv[3]) if len(sys.argv) > 3 else False
+    if audio_path: 
+        save_frames_to_video(frames)
+        add_audio_to_video(save_frames_to_video(frames), audio_path, result_path)
+    else:
+        save_frames_to_video(frames, result_path)
 
 end_time = time.time()
 print(f"Encoding completed in {end_time - start_time:.2f} seconds.")
